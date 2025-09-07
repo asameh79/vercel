@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة أهداف Xena Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #111827; /* Dark blue-gray background */
+        }
+        .main-container {
+            background-image: radial-gradient(circle at top right, rgba(168, 85, 247, 0.2), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.2), transparent 40%);
+        }
+        .card {
+            background-color: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.2);
+        }
+        .form-input {
+            background-color: #e5e7eb; /* Light grey background */
+            border: 1px solid #9ca3af; /* Medium grey border */
+            color: #111827; /* Dark text (black) */
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-input::placeholder {
+            color: #6b7280;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #A855F7;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+        /* Custom Toggle Switch */
+        .toggle-label {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-label input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4B5563;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background: linear-gradient(to right, #A855F7, #EC4899);
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        /* Animation */
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .role-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #4B5563;
+            border-radius: 9999px;
+            transition: all 0.3s ease-in-out;
+            font-weight: 500;
+            cursor: pointer;
+            background-color: transparent;
+        }
+        .role-btn.active {
+            background: linear-gradient(to right, #A855F7, #EC4899);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div class="main-container min-h-screen flex flex-col items-center justify-center p-4">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold tracking-tight">حاسبة أهداف Xena Live</h1>
+            <p class="text-lg text-gray-400 mt-2">أدخل أهدافك لمعرفة راتبك أو عمولتك</p>
+        </header>
+
+        <div class="flex justify-center space-x-2 sm:space-x-4 mb-6 rounded-full p-1 bg-gray-900/50" dir="ltr">
+            <button id="role-host" data-role="host" class="role-btn active">مذيع</button>
+            <button id="role-agency" data-role="agency" class="role-btn">مدير وكالة</button>
+        </div>
+
+        <div class="card w-full max-w-md p-6 sm:p-8 rounded-2xl">
+            <div class="space-y-6">
+                <div>
+                    <label for="xcoins-input" class="block text-sm font-medium text-gray-300 mb-2">أدخل رصيد الأكس كوينز</label>
+                    <input type="number" id="xcoins-input" placeholder="مثال: 3500000" class="form-input w-full p-3 rounded-lg text-lg text-right">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-300">هل أتممت 10 أيام نشاط (15 ساعة)؟</span>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="active-days-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <button id="calculate-btn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity text-white font-bold py-3 px-4 rounded-lg text-lg">
+                    احسب
+                </button>
+            </div>
+        </div>
+
+        <div id="result-card" class="hidden card w-full max-w-md p-6 sm:p-8 rounded-2xl mt-8">
+             <div id="result-content"></div>
+             <div id="gemini-feature-section" class="hidden mt-6 pt-4 border-t border-gray-600">
+                <button id="gemini-btn" class="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:opacity-90 transition-opacity text-white font-bold py-3 px-4 rounded-lg text-md">
+                    </button>
+                <div id="gemini-response-container" class="hidden mt-4 p-4 rounded-lg bg-gray-800/50 text-right">
+                    <div id="gemini-loading" class="text-center text-gray-400">...جاري الكتابة بالذكاء الاصطناعي</div>
+                    <div id="gemini-response-text" class="whitespace-pre-wrap text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Data updated based on the new, more detailed Google Sheet
+            const levels = [
+                { level: 1, xcoins: 250000, hostBasic: 21, hostBonus: 3, agencyBasic: 7, agencyBonus: 0 },
+                { level: 2, xcoins: 500000, hostBasic: 41, hostBonus: 7, agencyBasic: 7, agencyBonus: 0 },
+                { level: 3, xcoins: 1000000, hostBasic: 81, hostBonus: 13, agencyBasic: 15, agencyBonus: 1 },
+                { level: 4, xcoins: 1500000, hostBasic: 117, hostBonus: 19, agencyBasic: 25, agencyBonus: 1 },
+                { level: 5, xcoins: 2500000, hostBasic: 194, hostBonus: 31, agencyBasic: 38, agencyBonus: 5 },
+                { level: 6, xcoins: 3500000, hostBasic: 273, hostBonus: 44, agencyBasic: 53, agencyBonus: 6 },
+                { level: 7, xcoins: 5000000, hostBasic: 399, hostBonus: 60, agencyBasic: 75, agencyBonus: 9 },
+                { level: 8, xcoins: 7500000, hostBasic: 579, hostBonus: 93, agencyBasic: 106, agencyBonus: 15 },
+                { level: 9, xcoins: 10000000, hostBasic: 771, hostBonus: 114, agencyBasic: 155, agencyBonus: 20 },
+                { level: 10, xcoins: 12500000, hostBasic: 965, hostBonus: 155, agencyBasic: 194, agencyBonus: 25 },
+                { level: 11, xcoins: 15000000, hostBasic: 1157, hostBonus: 186, agencyBasic: 233, agencyBonus: 30 },
+                { level: 12, xcoins: 20000000, hostBasic: 1529, hostBonus: 246, agencyBasic: 320, agencyBonus: 43 },
+                { level: 13, xcoins: 25000000, hostBasic: 1911, hostBonus: 308, agencyBasic: 400, agencyBonus: 54 },
+                { level: 14, xcoins: 30000000, hostBasic: 2293, hostBonus: 369, agencyBasic: 480, agencyBonus: 65 },
+                { level: 15, xcoins: 35000000, hostBasic: 2675, hostBonus: 431, agencyBasic: 560, agencyBonus: 76 },
+                { level: 16, xcoins: 40000000, hostBasic: 3057, hostBonus: 493, agencyBasic: 640, agencyBonus: 87 },
+                { level: 17, xcoins: 45000000, hostBasic: 3440, hostBonus: 554, agencyBasic: 720, agencyBonus: 97 },
+                { level: 18, xcoins: 50000000, hostBasic: 3821, hostBonus: 616, agencyBasic: 800, agencyBonus: 109 },
+                { level: 19, xcoins: 60000000, hostBasic: 4586, hostBonus: 740, agencyBasic: 960, agencyBonus: 129 },
+                { level: 20, xcoins: 75000000, hostBasic: 5644, hostBonus: 1193, agencyBasic: 1200, agencyBonus: 163 },
+                { level: 21, xcoins: 100000000, hostBasic: 7554, hostBonus: 1229, agencyBasic: 1600, agencyBonus: 217 },
+                { level: 22, xcoins: 125000000, hostBasic: 9554, hostBonus: 1539, agencyBasic: 2000, agencyBonus: 271 },
+                { level: 23, xcoins: 150000000, hostBasic: 11465, hostBonus: 1847, agencyBasic: 2400, agencyBonus: 325 },
+                { level: 24, xcoins: 200000000, hostBasic: 15287, hostBonus: 2463, agencyBasic: 3200, agencyBonus: 434 },
+                { level: 25, xcoins: 250000000, hostBasic: 19109, hostBonus: 3079, agencyBasic: 4000, agencyBonus: 542 },
+                { level: 26, xcoins: 300000000, hostBasic: 22930, hostBonus: 3694, agencyBasic: 4800, agencyBonus: 650 },
+                { level: 27, xcoins: 350000000, hostBasic: 26752, hostBonus: 4310, agencyBasic: 5600, agencyBonus: 759 },
+                { level: 28, xcoins: 400000000, hostBasic: 30574, hostBonus: 4926, agencyBasic: 6400, agencyBonus: 867 },
+                { level: 29, xcoins: 450000000, hostBasic: 34531, hostBonus: 5563, agencyBasic: 7105, agencyBonus: 948 },
+                { level: 30, xcoins: 500000000, hostBasic: 38369, hostBonus: 6182, agencyBasic: 7895, agencyBonus: 1052 },
+                { level: '30+', xcoins: 750000000, hostBasic: 57552, hostBonus: 9272, agencyBasic: 11852, agencyBonus: 1579 },
+            ].reverse(); // Reverse for easier lookup from highest to lowest
+
+            const calculateBtn = document.getElementById('calculate-btn');
+            const xcoinsInput = document.getElementById('xcoins-input');
+            const activeDaysToggle = document.getElementById('active-days-toggle');
+            const resultCard = document.getElementById('result-card');
+            const resultContent = document.getElementById('result-content');
+            const roleHostBtn = document.getElementById('role-host');
+            const roleAgencyBtn = document.getElementById('role-agency');
+            const geminiSection = document.getElementById('gemini-feature-section');
+            const geminiBtn = document.getElementById('gemini-btn');
+            
+            let currentRole = 'host';
+            let lastCalculationResult = null;
+
+            roleHostBtn.addEventListener('click', () => {
+                currentRole = 'host';
+                roleHostBtn.classList.add('active');
+                roleAgencyBtn.classList.remove('active');
+                resultCard.classList.add('hidden');
+                geminiSection.classList.add('hidden');
+            });
+
+            roleAgencyBtn.addEventListener('click', () => {
+                currentRole = 'agency';
+                roleAgencyBtn.classList.add('active');
+                roleHostBtn.classList.remove('active');
+                resultCard.classList.add('hidden');
+                geminiSection.classList.add('hidden');
+            });
+
+            const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+            calculateBtn.addEventListener('click', () => {
+                const xcoins = parseInt(xcoinsInput.value);
+                const isActive = activeDaysToggle.checked;
+
+                if (isNaN(xcoins) || xcoins < 0) {
+                    resultContent.innerHTML = `<p class="text-center text-red-400">الرجاء إدخال عدد صحيح من الأكس كوينز.</p>`;
+                    resultCard.classList.remove('hidden');
+                    resultCard.classList.add('fade-in-up');
+                    geminiSection.classList.add('hidden');
+                    return;
+                }
+
+                let achievedLevel = null;
+                for (const level of levels) {
+                    if (xcoins >= level.xcoins) {
+                        achievedLevel = level;
+                        break;
+                    }
+                }
+                
+                lastCalculationResult = { levelData: achievedLevel, isActive: isActive, role: currentRole, xcoins: xcoins };
+                displayResults(achievedLevel, isActive, currentRole);
+                setupGeminiButton();
+            });
+
+            function displayResults(levelData, isActive, role) {
+                if (!levelData) {
+                    resultContent.innerHTML = `
+                        <div class="text-center">
+                            <h2 class="text-2xl font-bold text-amber-400 mb-2">لم يتم الوصول للهدف بعد</h2>
+                            <p class="text-gray-400">الرصيد الحالي أقل من متطلبات المستوى الأول (${formatNumber(250000)} أكس كوينز). استمر في العمل!</p>
+                        </div>`;
+                } else if (role === 'host') {
+                    const totalSalary = levelData.hostBasic + (isActive ? levelData.hostBonus : 0);
+                    const salaryMessage = isActive 
+                        ? `<p class="text-sm text-green-400">تم احتساب بونص النشاط لإكمالك الشروط.</p>`
+                        : `<p class="text-sm text-yellow-400">لم يتم احتساب بونص النشاط لعدم إكمالك الشروط.</p>`;
+
+                    resultContent.innerHTML = `
+                        <div class="text-center space-y-4">
+                            <div>
+                                <p class="text-sm text-purple-400 font-medium">المستوى المحقق</p>
+                                <p class="text-4xl font-bold">${levelData.level}</p>
+                            </div>
+                            <hr class="border-gray-600">
+                            <div>
+                                <p class="text-sm text-purple-400 font-medium">الراتب المستحق</p>
+                                <p class="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400 py-2">$${formatNumber(totalSalary)}</p>
+                                ${salaryMessage}
+                            </div>
+                            <div class="text-right text-sm pt-4 space-y-2">
+                                <p class="text-gray-400">راتب المذيع الأساسي: <span class="font-semibold text-white">$${formatNumber(levelData.hostBasic)}</span></p>
+                                <p class="text-gray-400">بونص الأيام الفعالة: <span class="font-semibold text-white">$${formatNumber(levelData.hostBonus)}</span></p>
+                            </div>
+                        </div>
+                    `;
+                } else if (role === 'agency') {
+                    const totalCommission = levelData.agencyBasic + (isActive ? levelData.agencyBonus : 0);
+                     const commissionMessage = isActive 
+                        ? `<p class="text-sm text-green-400">تم احتساب بونص النشاط لإكمال المذيع الشروط.</p>`
+                        : `<p class="text-sm text-yellow-400">تم احتساب العمولة الأساسية فقط لعدم تحقيق شرط النشاط.</p>`;
+
+                    resultContent.innerHTML = `
+                        <div class="text-center space-y-4">
+                            <div>
+                                <p class="text-sm text-purple-400 font-medium">المستوى الذي حققه المذيع</p>
+                                <p class="text-4xl font-bold">${levelData.level}</p>
+                            </div>
+                            <hr class="border-gray-600">
+                            <div>
+                                <p class="text-sm text-purple-400 font-medium">عمولة الوكالة المستحقة</p>
+                                <p class="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400 py-2">$${formatNumber(totalCommission)}</p>
+                                ${commissionMessage}
+                            </div>
+                             <div class="text-right text-sm pt-4 space-y-2">
+                                <p class="text-gray-400">عمولة الوكالة الأساسية: <span class="font-semibold text-white">$${formatNumber(levelData.agencyBasic)}</span></p>
+                                <p class="text-gray-400">بونص الأيام الفعالة: <span class="font-semibold text-white">$${formatNumber(levelData.agencyBonus)}</span></p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultCard.classList.remove('hidden');
+                resultCard.classList.remove('fade-in-up');
+                void resultCard.offsetWidth; // Trigger reflow to restart animation
+                resultCard.classList.add('fade-in-up');
+            }
+            
+            // --- Gemini API Integration ---
+            const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+            const API_KEY = ""; // IMPORTANT: Add your Gemini API key here
+
+            function setupGeminiButton() {
+                const geminiResponseContainer = document.getElementById('gemini-response-container');
+
+                if (!lastCalculationResult || !lastCalculationResult.levelData) {
+                    geminiSection.classList.add('hidden');
+                    return;
+                }
+                
+                geminiResponseContainer.classList.add('hidden'); // Hide old response
+                
+                if (lastCalculationResult.role === 'host') {
+                    geminiBtn.innerHTML = '✨ احصل على نصائح تحفيزية';
+                } else { // agency
+                    geminiBtn.innerHTML = '✨ كتابة رسالة للمذيع';
+                }
+
+                geminiSection.classList.remove('hidden');
+            }
+
+            geminiBtn.addEventListener('click', () => {
+                if (!lastCalculationResult || !lastCalculationResult.levelData) return;
+
+                const { levelData, isActive, role, xcoins } = lastCalculationResult;
+                let prompt = '';
+
+                if (role === 'host') {
+                    const earnings = levelData.hostBasic + (isActive ? levelData.hostBonus : 0);
+                    const statusText = isActive ? "وقد حققت بونص الأيام الفعالة." : "ولكنني لم أحقق بونص الأيام الفعالة هذا الشهر.";
+                    
+                    prompt = `أنا مذيع في تطبيق بث مباشر. مستواي الحالي هو ${levelData.level} وحققت ${formatNumber(xcoins)} أكس كوينز، وراتبي هو ${earnings} دولار. ${statusText}
+                    اكتب لي رسالة تحفيزية قصيرة باللغة العربية مع 3 نصائح عملية ومبتكرة لزيادة تفاعل المتابعين والوصول للمستوى التالي. اجعل النصائح مناسبة للجمهور العربي.`;
+                } else { // agency
+                    const earnings = levelData.hostBasic + (isActive ? levelData.hostBonus : 0);
+                    const statusText = isActive 
+                        ? `وقد أتم الشروط بنجاح وحقق بونص الأيام الفعالة، وراتبه الإجمالي هو ${earnings} دولار.`
+                        : `ولكنه لم يتمكن من تحقيق بونص الأيام الفعالة، وراتبه هو ${levelData.hostBasic} دولار فقط.`;
+
+                    prompt = `بصفتك مدير وكالة محترف وداعم في تطبيق بث مباشر، اكتب مسودة رسالة قصيرة باللغة العربية لإرسالها لأحد المذيعين في وكالتي.
+                    - بيانات المذيع: وصل للمستوى ${levelData.level} بعد تحقيق ${formatNumber(xcoins)} أكس كوينز. ${statusText}
+                    - المطلوب:
+                    1. ابدأ بتهنئته على مجهوده والوصول لهذا المستوى.
+                    2. بناءً على حالة تحقيق البونص، قدم له ملاحظة بناءة. (إذا حققه، أثنِ على التزامه. إذا لم يحققه، ذكره بأهمية التخطيط للأيام الفعالة للشهر القادم لزيادة دخله).
+                    3. اختم الرسالة بعبارة تشجيعية للمستقبل.
+                    اجعل اللهجة إيجابية ومهنية.`;
+                }
+
+                callGeminiAPI(prompt);
+            });
+
+            async function callGeminiAPI(prompt, maxRetries = 3) {
+                const geminiResponseContainer = document.getElementById('gemini-response-container');
+                const geminiLoading = document.getElementById('gemini-loading');
+                const geminiResponseText = document.getElementById('gemini-response-text');
+
+                geminiResponseContainer.classList.remove('hidden');
+                geminiLoading.classList.remove('hidden');
+                geminiResponseText.textContent = '';
+
+                if (!API_KEY) {
+                    geminiLoading.classList.add('hidden');
+                    geminiResponseText.textContent = 'خطأ: مفتاح Gemini API غير موجود. يرجى إضافته في الكود البرمجي.';
+                    return;
+                }
+                
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                };
+
+                let attempt = 0;
+                while (attempt < maxRetries) {
+                    try {
+                        const response = await fetch(GEMINI_API_URL + API_KEY, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            if (response.status === 429 || response.status >= 500) {
+                               // Throttling or server error, worth retrying
+                                throw new Error(`Retryable HTTP error! status: ${response.status}`);
+                            } else {
+                               // Other client-side error, don't retry
+                                 const errorBody = await response.text();
+                                throw new Error(`Non-retryable HTTP error! status: ${response.status}, body: ${errorBody}`);
+                            }
+                        }
+
+                        const result = await response.json();
+                        const candidate = result.candidates?.[0];
+                        
+                        if (candidate && candidate.content?.parts?.[0]?.text) {
+                            geminiLoading.classList.add('hidden');
+                            geminiResponseText.textContent = candidate.content.parts[0].text;
+                            return; // Success
+                        } else {
+                            throw new Error('Invalid response structure from API.');
+                        }
+                    } catch (error) {
+                        console.error(`Gemini API call failed on attempt ${attempt + 1}:`, error);
+                        attempt++;
+                        if (attempt >= maxRetries) {
+                             geminiLoading.classList.add('hidden');
+                             geminiResponseText.textContent = 'عذرًا، حدث خطأ أثناء محاولة الاتصال بالذكاء الاصطناعي. يرجى المحاولة مرة أخرى.';
+                             break;
+                        } else {
+                            const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                }
+            }
+
+        });
+    </script>
+</body>
+</html>
